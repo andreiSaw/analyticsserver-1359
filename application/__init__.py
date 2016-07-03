@@ -1,6 +1,6 @@
 from flask import Flask
 
-app = Flask(__name__)
+app = Flask(__name__, static_url_path='/application/static')
 
 from application import views, models
 
