@@ -1,17 +1,12 @@
 # import the Flask class from the flask module
-from flask import Flask, render_template, redirect, url_for, request, session, flash
+
 from functools import wraps
 
-# create the application object
-app = Flask(__name__)
+from flask import Flask, render_template, redirect, url_for, request, session, flash
+
 # config
-app.secret_key = "developers"
-
-
-# use decorators to link the function to a url
-@app.route('/')
-def home():
-    return redirect(url_for('welcome'))
+#  create the application object
+app = Flask(__name__)
 
 
 # login required decorator
@@ -27,10 +22,20 @@ def login_required(f):
     return wrap
 
 
+@app.route('/')
+def home():
+    return redirect(url_for('welcome'))
+
+
 # use decorators to link the function to a url
 @app.route('/welcome')
 def welcome():
     return render_template('welcome.html')  # render a template
+
+
+@app.route('/main')
+def mainpage():
+    return render_template('main.html')  # render a template
 
 
 # route for handling the login page logic
@@ -38,12 +43,13 @@ def welcome():
 def login():
     error = None
     if request.method == 'POST':
-        if request.form['username'] != 'admin' or request.form['password'] != 'admin':
+        if (request.form['username'] != 'admin') \
+                or request.form['password'] != 'admin':
             error = 'Invalid Credentials. Please try again.'
         else:
             session['logged_in'] = True
-            flash('You were just logged in!')
-            return redirect(url_for('mainpage'))
+            flash('You were logged in.')
+            return redirect(url_for('home'))
     return render_template('login.html', error=error)
 
 
@@ -55,13 +61,5 @@ def logout():
     return redirect(url_for('welcome'))
 
 
-@app.route('/mainpage')
-@login_required
-def mainpage():
-    return render_template('mainPage.html')
-
-
-# start the server with the 'run()' method
 if __name__ == '__main__':
     app.run()
-    # app.run(debug=True)
