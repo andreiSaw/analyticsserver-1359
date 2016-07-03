@@ -7,7 +7,6 @@ $("#login-button").click(function (event) {
         $('.wrapper').addClass('form-success');
         setTimeout(function () {
             window.location.replace('/main');
-
         }, 5000);
     }
 });
