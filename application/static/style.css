@@ -44,8 +44,8 @@ body :-ms-input-placeholder {
 }
 
 .wrapper {
-  background-image: url("back.png");
-  position: absolute;
+    background-image: url("back.png");
+    position: absolute;
     left: 0;
     width: 100%;
     height: 100%;

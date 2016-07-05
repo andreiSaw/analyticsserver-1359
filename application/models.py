@@ -1,4 +1,6 @@
 from google.appengine.ext import ndb
+from werkzeug.security import generate_password_hash, \
+    check_password_hash
 from google.appengine.ext.db import stats
 
 tkey = ndb.Key('user', 'newUser')
@@ -6,43 +8,55 @@ tkey = ndb.Key('user', 'newUser')
 
 class user(ndb.Model):
     userid = ndb.IntegerProperty()
-    login = ndb.StringProperty()
-    password = ndb.StringProperty()
+    username = ndb.StringProperty()
+    pw_hash = ndb.StringProperty()
     email = ndb.StringProperty()
+    appName=ndb.StringProperty()
+
+    def set_password(self, password):
+        self.pw_hash = generate_password_hash(password)
+
+    def check_password(self, password):
+        return check_password_hash(self.pw_hash, password)
 
 
 def addUser(info):
     if (checkIfAlreadyExists(info)):
         return False
-    newUser = user(parent=tkey)
+    newUser = user()
+    newUser.username=info["login"]
+    newUser.set_password(info["password"])
     newUser.userid = info["userid"]
-    newUser.login = info["login"]
     newUser.email = info["email"]
-    newUser.password = info["password"]
     newUser.put()
     return True
 
 
 def checkLogin(_name, _pass):
-    qry = user.query(user.login == _name)
+
+    qry = user.query(user.username == _name)
+    #delete
     print _name
 
     res = qry.fetch(1)
+    #delete pls
     print res
+    print res[0].check_password(_pass)
+    print generate_password_hash(_pass)
+    print res[0].pw_hash
 
     if len(res) == 0:
         return False
 
-    elif str(res[0].password) == str(_pass):
+    elif res[0].check_password(str(_pass)):
         return True
     else:
         return False
 
 
 def checkIfAlreadyExists(info):
-    qry = None
-    qry = user.query(user.login == info["login"])
-    res= qry.fetch(1)
+    qry = user.query(user.username == info["login"])
+    res = qry.fetch(1)
     print res
     if (len(res) != 0):
         return True
