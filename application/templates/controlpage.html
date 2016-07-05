@@ -1,0 +1,29 @@
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" href="/application/static/style.css">
+</head>
+<body>
+<div class="wrapper">
+    <div class="container">
+        <table width="100%" border="1">
+            <tr>
+                <td>
+                    <h1> Google Analytics</h1>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <h1>Apple Analytics</h1>
+                </td>
+            </tr>
+        </table>
+        <p>Click <a href="/logout">here</a> to logout.</p>
+          {% for message in get_flashed_messages() %}
+        {{ message }}
+      {% endfor %}
+    </div>
+</div>
+</body>
+</html>

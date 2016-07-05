@@ -1,0 +1,25 @@
+<html>
+<head>
+    <title>Sign Up</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="/application/static/style.css" rel="stylesheet" media="screen">
+</head>
+<body>
+<div class="wrapper">
+    <div class="container">
+        <h1>Please sign up</h1>
+        <br>
+        <form action="" method="post">
+            <input type="text" placeholder="Username" name="username" value="{{ request.form.username }}">
+            <input type="password" placeholder="Password" name="password" value="{{ request.form.password }}">
+            <input type="email" placeholder="Email" name="email" value="{{ request.form.email }}">
+            <input class="btn btn-default" type="submit" value="Register">
+        </form>
+        <p>Click <a href="/login">here</a> to login.</p>
+        {% if error %}
+            <p class="error"><strong>Error:</strong> {{ error }}</p>
+        {% endif %}
+    </div>
+</div>
+</body>
+</html>

@@ -3,13 +3,19 @@
 <head>
     <title>Welcoming Page</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="/application/static/bootstrap.min.css" rel="stylesheet" media="screen">
+    <link href="/application/static/style.css" rel="stylesheet" media="screen">
 </head>
 <body>
-<div class="container">
-    <h1>Welcome to Analytics Server!</h1>
-    <br>
-    <p>Click <a href="/login">here</a> to login.</p>
+<div class="wrapper">
+    <div class="container">
+        <h1>Welcome to Analytics Server!</h1>
+        <br>
+        <h2 align="left">Click <a href="/login">here</a> to login.</h2>
+        <h2 align="left">Click <a href="/registr">here</a> to sign up.</h2>
+        {% for message in get_flashed_messages() %}
+            {{ message }}
+        {% endfor %}
+    </div>
 </div>
 </body>
 </html>
