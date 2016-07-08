@@ -10,15 +10,17 @@
         <h1>Please login</h1>
         <br>
         <form action="" method="post">
-            <input type="text" placeholder="Username" name="username" value="{{ request.form.username }}">
-            <input type="password" placeholder="Password" name="password" value="{{ request.form.password }}">
-            <input class="btn btn-default" type="submit" value="Login">
+            <input type="text" placeholder="Username" id="username-input" name="username" value="{{ request.form.username }}" tabindex="1">
+            <input type="password" placeholder="Password" id="password-input" name="password" value="{{ request.form.password }}"
+                   tabindex="2">
+            <input class="btn btn-default" type="submit" value="Login" tabindex="3" id="login-button">
         </form>
+        <br>
         <p>Click <a href="/registr">here</a> to sign up.</p>
+        <br>
         {% if error %}
             <p class="error"><strong>Error:</strong> {{ error }}</p>
         {% endif %}
-
     </div>
 </div>
 </body>

@@ -6,24 +6,15 @@
 </head>
 <body>
 <div class="wrapper">
-    <div class="container">
-        <table width="100%" border="1">
-            <tr>
-                <td>
-                    <h1> Google Analytics</h1>
-                </td>
-            </tr>
-            <tr>
-                <td>
-                    <h1>Apple Analytics</h1>
-                </td>
-            </tr>
-        </table>
-        <p>Click <a href="/logout">here</a> to logout.</p>
-        {% for message in get_flashed_messages() %}
-            {{ message }}
-        {% endfor %}
+    <div class="chart" id="chart">
+        <!-- Don't forget the "|safe"! -->
+        <embed type="image/svg+xml" src={{ chart|safe }}></embed>
     </div>
+    <p>Click <a href="/logout">here</a> to logout.</p>
+    <br>
+    {% for message in get_flashed_messages() %}
+        {{ message }}
+    {% endfor %}
 </div>
 </body>
 </html>
