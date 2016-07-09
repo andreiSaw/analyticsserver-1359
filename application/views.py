@@ -1,3 +1,6 @@
+import csv
+import io
+
 import pygal
 
 from application import app
@@ -8,33 +11,63 @@ from models import *
 
 @app.route('/')
 def home():
-    return redirect(url_for('transform_view'))
-
-
-@app.route('/well')
-def simple():
-    chart = pygal.Line(include_x_axis=True)
-    chart.add('line', [.0002, .0005, .00035])
-    chart.render()
-    """ render svg graph """
-    bar_chart = pygal.Bar()
-    bar_chart.add('Fibonacci', [0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55])
-    bar_chart = bar_chart.render_data_uri()
-    # return Response(response=bar_chart.render(), content_type='image/svg+xml')
-    return render_template('controlpage.html', chart=bar_chart)
-    # return chart.render_response()
+    return redirect(url_for('welcome'))
 
 
 # use decorators to link the function to a url
 @app.route('/welcome')
 def welcome():
+    list = [
+        "application/static/installs/installs_com.rubeacon.redcup_201507_overview.csv",
+        "application/static/installs/installs_com.rubeacon.redcup_201508_overview.csv",
+        "application/static/installs/installs_com.rubeacon.redcup_201509_overview.csv",
+        "application/static/installs/installs_com.rubeacon.redcup_201510_overview.csv",
+        "application/static/installs/installs_com.rubeacon.redcup_201511_overview.csv",
+        "application/static/installs/installs_com.rubeacon.redcup_201512_overview.csv",
+        "application/static/installs/installs_com.rubeacon.redcup_201601_overview.csv",
+        "application/static/installs/installs_com.rubeacon.redcup_201602_overview.csv",
+        "application/static/installs/installs_com.rubeacon.redcup_201603_overview.csv",
+        "application/static/installs/installs_com.rubeacon.redcup_201604_overview.csv",
+        "application/static/installs/installs_com.rubeacon.redcup_201605_overview.csv",
+        "application/static/installs/installs_com.rubeacon.redcup_201606_overview.csv",
+        "application/static/installs/installs_com.rubeacon.redcup_201607_overview.csv"]
+    for entry in list:
+        f = open(entry)
+        stream = io.StringIO(f.read().decode("UTF16"), newline=None)
+        csv_input = csv.reader(stream)
+        flag = False
+        for row in csv_input:
+            print(row)
+            if (not (flag)):
+                flag = True
+            else:
+                info = {'date': row[0], 'appName': row[1], 'curDevInst': int(row[2]), 'dailyDevInst': int(row[3]),
+                        'dailyDevUnist': int(row[4]), 'dailyDevUp': int(row[5]),
+                        'curUserInst': int(row[6]), 'totUserInst': int(row[7]), 'dailyUserInst': int(row[8]),
+                        'dailyUserUninst': int(row[9])
+                        }
+                primitiveUlpoadOnServer(info)
+        f.close()
     return render_template('welcome.html')  # render a template
 
 
 @app.route('/controlpage')
 @login_required
 def controlpage():
-    return render_template('controlpage.html')  # render a template
+    res = getInstallFromServer("com.rubeacon.redcup", "2016-05-01", "2016-07-01")
+    # curDevInst = getInstallWithParam(res, 'curDevInst')
+    dailyDevInst = getInstallWithParam(res, 'dailyDevInst')
+    dailyDevUnist = getInstallWithParam(res, 'dailyDevUnist')
+    dates = getInstallWithParam(res, 'date')
+
+    chart = pygal.Line(show_x_labels=False)
+    # chart.add('Current Device Installs', curDevInst)
+    chart.add('Daily Device Installs', dailyDevInst)
+    chart.add('Daily Device Uninstalls', dailyDevUnist)
+    chart.x_labels=dates
+
+    chart = chart.render_data_uri()
+    return render_template('controlpage.html', chart=chart)  # render a template
 
 
 # route for handling the login page logic
@@ -93,14 +126,3 @@ def server_error(e):
     An internal error occurred: <pre>{}</pre>
     See logs for full stacktrace.
     """.format(e), 500
-
-
-@app.route('/transform')
-def transform_view():
-    f = open("/application/static/installs/installs_com.rubeacon.redcup_201601_overview.csv")
-    print f
-    return True
-
-
-def transform(text_file_contents):
-    return text_file_contents.replace("=", ",")
