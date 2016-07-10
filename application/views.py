@@ -1,12 +1,12 @@
-import csv
-import io
-
 import pygal
 
 from application import app
 from decorators import login_required
-from flask import session, redirect, url_for, flash, request, render_template
+from flask import session, redirect, url_for, flash, request, render_template, make_response
 from models import *
+
+curAppName = ""
+curUser = ""
 
 
 @app.route('/')
@@ -17,57 +17,41 @@ def home():
 # use decorators to link the function to a url
 @app.route('/welcome')
 def welcome():
-    list = [
-        "application/static/installs/installs_com.rubeacon.redcup_201507_overview.csv",
-        "application/static/installs/installs_com.rubeacon.redcup_201508_overview.csv",
-        "application/static/installs/installs_com.rubeacon.redcup_201509_overview.csv",
-        "application/static/installs/installs_com.rubeacon.redcup_201510_overview.csv",
-        "application/static/installs/installs_com.rubeacon.redcup_201511_overview.csv",
-        "application/static/installs/installs_com.rubeacon.redcup_201512_overview.csv",
-        "application/static/installs/installs_com.rubeacon.redcup_201601_overview.csv",
-        "application/static/installs/installs_com.rubeacon.redcup_201602_overview.csv",
-        "application/static/installs/installs_com.rubeacon.redcup_201603_overview.csv",
-        "application/static/installs/installs_com.rubeacon.redcup_201604_overview.csv",
-        "application/static/installs/installs_com.rubeacon.redcup_201605_overview.csv",
-        "application/static/installs/installs_com.rubeacon.redcup_201606_overview.csv",
-        "application/static/installs/installs_com.rubeacon.redcup_201607_overview.csv"]
-    for entry in list:
-        f = open(entry)
-        stream = io.StringIO(f.read().decode("UTF16"), newline=None)
-        csv_input = csv.reader(stream)
-        flag = False
-        for row in csv_input:
-            print(row)
-            if (not (flag)):
-                flag = True
-            else:
-                info = {'date': row[0], 'appName': row[1], 'curDevInst': int(row[2]), 'dailyDevInst': int(row[3]),
-                        'dailyDevUnist': int(row[4]), 'dailyDevUp': int(row[5]),
-                        'curUserInst': int(row[6]), 'totUserInst': int(row[7]), 'dailyUserInst': int(row[8]),
-                        'dailyUserUninst': int(row[9])
-                        }
-                primitiveUlpoadOnServer(info)
-        f.close()
+    # flushDatastore()
+    # getData()
     return render_template('welcome.html')  # render a template
 
 
-@app.route('/controlpage')
+@app.route('/controlpage', methods=['GET', 'POST'])
 @login_required
 def controlpage():
-    res = getInstallFromServer("com.rubeacon.redcup", "2016-05-01", "2016-07-01")
-    # curDevInst = getInstallWithParam(res, 'curDevInst')
-    dailyDevInst = getInstallWithParam(res, 'dailyDevInst')
-    dailyDevUnist = getInstallWithParam(res, 'dailyDevUnist')
+    param='curDevInst'
+    curUser = request.cookies.get('username')
+    print curUser
+    qry = user.query(user.username == curUser)
+    res = qry.fetch()
+    if len(res) == 0:
+        print 'pizdec'
+
+    curAppName = res[0].appName
+    print curAppName
+    chart = pygal.Line(show_x_labels=False,
+                       width=800, height=500,
+                       show_legend=False)
+    if request.method == 'POST':
+        param=request.form.get('selector')
+
+        res = getInstallFromServer(curAppName, "2016-05-01", "2016-07-01")
+    else:
+        res = getInstallFromServer(curAppName, "2016-05-01", "2016-07-01")
+    print param
+    print "-------"
+    inst = getInstallWithParam(res, param)
+    chart.add('data', inst)
     dates = getInstallWithParam(res, 'date')
-
-    chart = pygal.Line(show_x_labels=False)
-    # chart.add('Current Device Installs', curDevInst)
-    chart.add('Daily Device Installs', dailyDevInst)
-    chart.add('Daily Device Uninstalls', dailyDevUnist)
-    chart.x_labels=dates
-
+    chart.x_labels = dates
     chart = chart.render_data_uri()
-    return render_template('controlpage.html', chart=chart)  # render a template
+    return render_template('controlpage.html', chart=chart,param1=param)
 
 
 # route for handling the login page logic
@@ -78,14 +62,15 @@ def register():
         username = request.form["username"]
         password = request.form["password"]
         email = request.form["email"]
+        appName = request.form["appName"]
         info = {"login": username,
                 "email": email,
-                "password": password
+                "password": password,
+                "appName": appName
                 }
         if (addUser(info)):
-            session['logged_in'] = True
             flash('You were signed up.')
-            return redirect(url_for('controlpage'))
+            return redirect(url_for('login'))
         error = 'Invalid Credentials. Please try again.'
     return render_template('registr.html', error=error)
 
@@ -100,9 +85,11 @@ def login():
         if not (checkLogin(username, str(password))):
             error = 'Invalid Credentials. Please try again.'
         else:
+            resp = make_response(redirect(url_for('controlpage')))
+            resp.set_cookie('username', username)
             session['logged_in'] = True
             flash('You were logged in.')
-            return redirect(url_for('controlpage'))
+            return resp
     else:
         if session.get('logged_in'):
             return redirect(url_for('controlpage'))
@@ -114,6 +101,8 @@ def login():
 def logout():
     session.pop('logged_in', None)
     flash('You were logged out.')
+    curAppName = ""
+    curUser = ""
     return redirect(url_for('welcome'))
 
 
