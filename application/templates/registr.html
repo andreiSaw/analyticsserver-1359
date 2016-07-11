@@ -5,24 +5,25 @@
     <link href="/application/static/style.css" rel="stylesheet" media="screen">
 </head>
 <body>
-<div class="wrapper">
-    <div class="container">
-        <h1>Please sign up</h1>
-        <br>
-        <form action="" method="post">
-            <input type="text" placeholder="Username" name="username" value="{{ request.form.username }}" tabindex="1">
-            <input type="password" placeholder="Password" name="password" value="{{ request.form.password }}" tabindex="2">
-            <input type="email" placeholder="Email" name="email" value="{{ request.form.email }}" tabindex="3">
-             <input type="text" placeholder="appName" name="appName" value="{{ request.form.appName }}" tabindex="4">
-            <input class="btn btn-default" type="submit" value="Register" tabindex="5">
-        </form>
-      <br>
-        <p>Click <a href="/login">here</a> to login.</p>
-      <br>
-        {% if error %}
-            <p class="error"><strong>Error:</strong> {{ error }}</p>
-        {% endif %}
-    </div>
+<div class="container">
+    <h1>Please sign up</h1>
+    <br>
+    <form action="" method="post">
+        <input type="text" placeholder="Username" name="username" value="{{ request.form.username }}" tabindex="1">
+        <input type="password" placeholder="Password" name="password" value="{{ request.form.password }}"
+               tabindex="2">
+        <input type="email" placeholder="Email" name="email" value="{{ request.form.email }}" tabindex="3">
+        <input type="text" placeholder="appName" name="appName" value="{{ request.form.appName }}" tabindex="4">
+        <input class="btn btn-default" type="submit" value="Register" tabindex="5">
+    </form>
+</div>
+<div class="container">
+    {% for message in get_flashed_messages() %}
+        {{ message }}
+    {% endfor %}
+</div>
+<div class="container">
+    <p>Click <a href="/login">here</a> to login.</p>
 </div>
 </body>
 </html>

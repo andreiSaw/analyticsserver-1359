@@ -25,33 +25,46 @@ def welcome():
 @app.route('/controlpage', methods=['GET', 'POST'])
 @login_required
 def controlpage():
-    param='curDevInst'
+    installParam = 'curDevInst'
+    dateParam = 'oneM'
+    defDotSize=3
+
     curUser = request.cookies.get('username')
     print curUser
     qry = user.query(user.username == curUser)
     res = qry.fetch()
     if len(res) == 0:
-        print 'pizdec'
+        print 'No such userName'
 
     curAppName = res[0].appName
     print curAppName
-    chart = pygal.Line(show_x_labels=False,
-                       width=800, height=500,
-                       show_legend=False)
-    if request.method == 'POST':
-        param=request.form.get('selector')
-
-        res = getInstallFromServer(curAppName, "2016-05-01", "2016-07-01")
-    else:
-        res = getInstallFromServer(curAppName, "2016-05-01", "2016-07-01")
-    print param
     print "-------"
-    inst = getInstallWithParam(res, param)
+
+    if request.method == 'POST':
+        installParam = request.form.get('selector')
+        dateParam = request.form.get('selector_date')
+        if dateParam!='oneM':
+            defDotSize=1
+    res = getInstallFromServerParam(curAppName, dateParam)
+
+    chart = pygal.Line(show_x_labels=False,
+                       width=700, height=300,
+                       show_legend=False,
+                       title=curAppName,
+                       dots_size=defDotSize,
+                       style=custom_style,
+                       interpolate='cubic',
+                       human_readable=True)
+
+    print installParam
+    print "-------"
+    inst = getInstallWithParam(res, installParam)
+    # change data to more obvious info
     chart.add('data', inst)
     dates = getInstallWithParam(res, 'date')
     chart.x_labels = dates
     chart = chart.render_data_uri()
-    return render_template('controlpage.html', chart=chart,param1=param)
+    return render_template('controlpage.html', chart=chart, param1=installParam, param2=dateParam, curUser=curUser)
 
 
 # route for handling the login page logic
@@ -70,9 +83,11 @@ def register():
                 }
         if (addUser(info)):
             flash('You were signed up.')
+            if session.get('logged_in'):
+                session.pop('logged_in', None)
             return redirect(url_for('login'))
-        error = 'Invalid Credentials. Please try again.'
-    return render_template('registr.html', error=error)
+        flash('Invalid Credentials. Please try again.')
+    return render_template('registr.html')
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -83,7 +98,7 @@ def login():
         password = request.form["password"]
         # check
         if not (checkLogin(username, str(password))):
-            error = 'Invalid Credentials. Please try again.'
+            flash('Invalid Credentials. Please try again.')
         else:
             resp = make_response(redirect(url_for('controlpage')))
             resp.set_cookie('username', username)
@@ -93,7 +108,7 @@ def login():
     else:
         if session.get('logged_in'):
             return redirect(url_for('controlpage'))
-    return render_template('login.html', error=error)
+    return render_template('login.html')
 
 
 @app.route('/logout')

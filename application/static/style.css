@@ -8,6 +8,7 @@
 }
 
 body {
+    background-image: url("back.png");
     font-family: 'Source Sans Pro', sans-serif;
     color: white;
     text-align: center;
@@ -45,7 +46,6 @@ body :-ms-input-placeholder {
 }
 
 .wrapper {
-    background-image: url("back.png");
     position: absolute;
     margin: 0 0;
     width: 100vw;
@@ -60,13 +60,13 @@ body :-ms-input-placeholder {
 }
 
 .chart {
-     position: absolute;
+
     align-items: center;
-    max-width: 55vw;
+
     text-align: center;
-    max-height: 55vh;
+
     width: 100vw;
-    margin: 0 0;
+    margin: 5% 5% 5% 5%;
     height: 100vh;
     padding: 0;
 }

@@ -1,10 +1,13 @@
 import csv
+import datetime
 import io
 import logging
 import os
 import threading
 
+from dateutil.relativedelta import relativedelta
 from google.appengine.ext import ndb
+from pygal.style import Style
 
 from werkzeug.security import generate_password_hash, check_password_hash
 
@@ -185,6 +188,27 @@ def getInstallFromServer(appName, dateStartWith, dateEndsWith):
     return res
 
 
+def getInstallFromServerParam(appName, param):
+    today = datetime.datetime.now()
+    day = datetime.timedelta(days=1)
+    datetoString = today - day
+
+    switch = {
+        'oneM': relativedelta(months=1),
+        'threeM': relativedelta(months=3),
+        'sixM': relativedelta(months=6),
+        'twelveM': relativedelta(months=12),
+        'allTime': relativedelta(months=72)
+    }
+
+    start = datetoString - switch[param]
+
+    startDate = str(start)[:10]
+    finishdate = str(datetoString)[:10]
+
+    return getInstallFromServer(appName, startDate, finishdate)
+
+
 def flushDatastore():
     ndb.delete_multi(
         install.query().fetch(keys_only=True)
@@ -193,7 +217,7 @@ def flushDatastore():
 
 
 def getData():
-    rootdir = 'application/static/installcom/fst/'
+    rootdir = 'application/static/installcom/scn/'
     list = []
     for subdir, dirs, files in os.walk(rootdir):
         for file in files:
@@ -224,3 +248,15 @@ def target1(filename):
                     }
             primitiveUlpoadOnServer(info)
     f.close()
+
+
+custom_style = Style(
+    plot_background='rgba(255, 255, 255, 1)',
+    background='rgba(249, 249, 249, 1)',
+    value_background='rgba(229, 229, 229, 1)',
+    foreground='rgba(0, 0, 0, .87)',
+    foreground_strong='rgba(0, 0, 0, 1)',
+    foreground_subtle='rgba(0, 0, 0, .54)',
+    opacity='.6',
+    opacity_hover='.9',
+    colors=('rgb(11, 124, 184)', '#E8537A', '#E95355', '#E87653', '#E89B53'))

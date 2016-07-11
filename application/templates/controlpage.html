@@ -5,47 +5,64 @@
     <link rel="stylesheet" href="/application/static/style.css">
 </head>
 <body>
-<div class="wrapper">
-    <div class="container">
-        <form action="" method="post">
-            <select name="selector">
-                <option value="curDevInst" {% if param1=="curDevInst" %} selected="selected"{% endif %}>Current Device
-                    Installs
-                </option>
-                <option value="dailyDevInst" {% if param1=="dailyDevInst" %} selected="selected"{% endif %}>Daily Device
-                    Installs
-                </option>
-                <option value="dailyDevUnist" {% if param1=="dailyDevUnist" %} selected="selected"{% endif %}>Daily
-                    Device Uninstalls
-                </option>
-                <option value="dailyDevUp" {% if param1=="dailyDevUp" %} selected="selected"{% endif %}>Daily Device
-                    Upgrades
-                </option>
-                <option value="curUserInst" {% if param1=="curUserInst" %} selected="selected"{% endif %}>Current User
-                    Installs
-                </option>
-                <option value="totUserInst" {% if param1=="totUserInst" %} selected="selected"{% endif %}>Total User
-                    Installs
-                </option>
-                <option value="dailyUserInst" {% if param1=="dailyUserInst" %} selected="selected"{% endif %}>Daily User
-                    Installs
-                </option>
-                <option value="dailyUserUninst" {% if param1=="dailyUserUninst" %} selected="selected"{% endif %}>Daily
-                    User Uninstalls
-                </option>
-            </select>
-            <input class="btn btn-default" type="submit" value="GO">
-        </form>
-        <div class="chart" id="chart">
-            <!-- Don't forget the "|safe"! -->
-            <embed type="image/svg+xml" src={{ chart|safe }}></embed>
-        </div>
-    </div>
-    <p>Click <a href="/logout">here</a> to logout.</p>
+<div class="container">
+    <form action="" method="post">
+        <select name="selector">
+            <option value="curDevInst" {% if param1=="curDevInst" %} selected="selected"{% endif %}>Current Device
+                Installs
+            </option>
+            <option value="dailyDevInst" {% if param1=="dailyDevInst" %} selected="selected"{% endif %}>Daily Device
+                Installs
+            </option>
+            <option value="dailyDevUnist" {% if param1=="dailyDevUnist" %} selected="selected"{% endif %}>Daily
+                Device Uninstalls
+            </option>
+            <option value="dailyDevUp" {% if param1=="dailyDevUp" %} selected="selected"{% endif %}>Daily Device
+                Upgrades
+            </option>
+            <option value="curUserInst" {% if param1=="curUserInst" %} selected="selected"{% endif %}>Current User
+                Installs
+            </option>
+            <option value="totUserInst" {% if param1=="totUserInst" %} selected="selected"{% endif %}>Total User
+                Installs
+            </option>
+            <option value="dailyUserInst" {% if param1=="dailyUserInst" %} selected="selected"{% endif %}>Daily User
+                Installs
+            </option>
+            <option value="dailyUserUninst" {% if param1=="dailyUserUninst" %} selected="selected"{% endif %}>Daily
+                User Uninstalls
+            </option>
+        </select>
+        <select name="selector_date">
+            <option value="oneM" {% if param2=="oneM" %} selected="selected"{% endif %}>1 month
+            </option>
+            <option value="threeM" {% if param2=="threeM" %} selected="selected"{% endif %}>3 months
+            </option>
+            <option value="sixM" {% if param2=="sixM" %} selected="selected"{% endif %}>6 months
+            </option>
+            <option value="twelveM" {% if param2=="twelveM" %} selected="selected"{% endif %}>1 year
+            </option>
+            <option value="allTime" {% if param2=="allTime" %} selected="selected"{% endif %}>All period
+            </option>
+        </select>
+        <input class="btn btn-default" type="submit" value="GO">
+    </form>
+</div>
+<div class="container">
+    <figure>
+        <!-- Don't forget the "|safe"! -->
+        <embed type="image/svg+xml" src={{ chart|safe }}></embed>
+    </figure>
+</div>
+<div class="container">
     <br>
     {% for message in get_flashed_messages() %}
         {{ message }}
     {% endfor %}
+    <br>
+    <p>{{ curUser }}, click <a href="/logout">here</a> to logout.</p>
+    <br>
 </div>
+
 </body>
 </html>
