@@ -10,7 +10,17 @@ indexes:
 # automatically uploaded to the admin console when you next deploy
 # your application using appcfg.py.
 
+- kind: crash
+  properties:
+  - name: appName
+  - name: intDate
+
 - kind: install
+  properties:
+  - name: appName
+  - name: intDate
+
+- kind: rate
   properties:
   - name: appName
   - name: intDate

@@ -18,7 +18,12 @@ def home():
 @app.route('/welcome')
 def welcome():
     # flushDatastore()
-    # getData()
+    # getInstallData()
+    # getCrashesData()
+    # getRatesData()
+    qry = user.query(user.username == "test")
+    res = qry.fetch()
+    res[0].appName = 'co1'
     return render_template('welcome.html')  # render a template
 
 
@@ -27,7 +32,7 @@ def welcome():
 def controlpage():
     installParam = 'curDevInst'
     dateParam = 'oneM'
-    defDotSize=3
+    defDotSize = 3
 
     curUser = request.cookies.get('username')
     print curUser
@@ -43,9 +48,28 @@ def controlpage():
     if request.method == 'POST':
         installParam = request.form.get('selector')
         dateParam = request.form.get('selector_date')
-        if dateParam!='oneM':
-            defDotSize=1
-    res = getInstallFromServerParam(curAppName, dateParam)
+        if dateParam != 'oneM':
+            defDotSize = 2
+        if (installParam == 'dailyCrashes'):
+            res = getCrashFromServerParam(curAppName, dateParam)
+            inst = getCrashesList(res, installParam)
+            dates = getCrashesList(res, 'date')
+            print "crashes"
+        elif (installParam == 'dailyR') or (installParam == 'totalR'):
+            res = getRateFromServerParam(curAppName, dateParam)
+            inst = getRatesList(res, installParam)
+            dates = getRatesList(res, 'date')
+            print "rates"
+        else:
+            res = getInstallFromServerParam(curAppName, dateParam)
+            inst = getInstallsWithParam(res, installParam)
+            dates = getInstallsWithParam(res, 'date')
+            print "installs"
+    else:
+        res = getInstallFromServerParam(curAppName, dateParam)
+        inst = getInstallsWithParam(res, installParam)
+        dates = getInstallsWithParam(res, 'date')
+        print "get"
 
     chart = pygal.Line(show_x_labels=False,
                        width=700, height=300,
@@ -58,10 +82,8 @@ def controlpage():
 
     print installParam
     print "-------"
-    inst = getInstallWithParam(res, installParam)
-    # change data to more obvious info
+
     chart.add('data', inst)
-    dates = getInstallWithParam(res, 'date')
     chart.x_labels = dates
     chart = chart.render_data_uri()
     return render_template('controlpage.html', chart=chart, param1=installParam, param2=dateParam, curUser=curUser)
@@ -81,12 +103,13 @@ def register():
                 "password": password,
                 "appName": appName
                 }
-        if (addUser(info)):
+        res = addUser(info)
+        if (res == 'ok'):
             flash('You were signed up.')
             if session.get('logged_in'):
                 session.pop('logged_in', None)
             return redirect(url_for('login'))
-        flash('Invalid Credentials. Please try again.')
+        flash(res)
     return render_template('registr.html')
 
 
@@ -98,12 +121,12 @@ def login():
         password = request.form["password"]
         # check
         if not (checkLogin(username, str(password))):
-            flash('Invalid Credentials. Please try again.')
+            flash('Invalid Credentials. Please try again')
         else:
             resp = make_response(redirect(url_for('controlpage')))
             resp.set_cookie('username', username)
             session['logged_in'] = True
-            flash('You were logged in.')
+            flash('You were logged in')
             return resp
     else:
         if session.get('logged_in'):
@@ -115,7 +138,7 @@ def login():
 @login_required
 def logout():
     session.pop('logged_in', None)
-    flash('You were logged out.')
+    flash('You were logged out')
     curAppName = ""
     curUser = ""
     return redirect(url_for('welcome'))

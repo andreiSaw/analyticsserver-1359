@@ -32,6 +32,15 @@
             <option value="dailyUserUninst" {% if param1=="dailyUserUninst" %} selected="selected"{% endif %}>Daily
                 User Uninstalls
             </option>
+         <option value="dailyCrashes" {% if param1=="dailyCrashes" %} selected="selected"{% endif %}>Daily
+                Crashes
+            </option>
+         <option value="dailyR" {% if param1=="dailyR" %} selected="selected"{% endif %}>Daily
+                Ratings
+            </option>
+         <option value="totalR" {% if param1=="totalR" %} selected="selected"{% endif %}>Total
+                Ratings
+            </option>
         </select>
         <select name="selector_date">
             <option value="oneM" {% if param2=="oneM" %} selected="selected"{% endif %}>1 month

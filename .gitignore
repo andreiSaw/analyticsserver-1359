@@ -1,2 +1,4 @@
 venv
 application/static/installcom
+application/static/rate
+application/static/crash

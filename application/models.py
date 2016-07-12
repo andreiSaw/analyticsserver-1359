@@ -3,6 +3,7 @@ import datetime
 import io
 import logging
 import os
+import re
 import threading
 
 from dateutil.relativedelta import relativedelta
@@ -12,6 +13,17 @@ from pygal.style import Style
 from werkzeug.security import generate_password_hash, check_password_hash
 
 tkey = ndb.Key('user', 'newUser')
+
+custom_style = Style(
+    plot_background='rgba(255, 255, 255, 1)',
+    background='rgba(249, 249, 249, 1)',
+    value_background='rgba(229, 229, 229, 1)',
+    foreground='rgba(0, 0, 0, .87)',
+    foreground_strong='rgba(0, 0, 0, 1)',
+    foreground_subtle='rgba(0, 0, 0, .54)',
+    opacity='.6',
+    opacity_hover='.9',
+    colors=('rgb(11, 124, 184)', '#E8537A', '#E95355', '#E87653', '#E89B53'))
 
 
 class user(ndb.Model):
@@ -29,23 +41,33 @@ class user(ndb.Model):
 
 
 def addUser(info):
-    if not (validate(info)):
-        return False
+    res = validate(info)
+    if res != 'ok':
+        return res
     newUser = user()
     newUser.username = info["login"]
     newUser.set_password(info["password"])
     newUser.email = info["email"]
     newUser.appName = info["appName"]
     newUser.put()
-    return True
+    return res
 
 
 def validate(info):
-    if (checkIfAlreadyExists(info)):
-        return False
-    if (len(info["login"]) < 2) or len(info["password"]) < 6 or len(info["email"]) < 5:
-        return False
-    return True
+    res = checkIfAlreadyExists(info)
+    regex = "[^@]+@[^@]+\.[^@]"
+    if res != 'ok':
+        return res
+    if len(info["login"]) < 4:
+        res = 'Login should be provided with more that 4 symbols'
+        return res
+    if len(info["password"]) < 6:
+        res = 'Password should be provided with more that 6 symbols'
+        return res
+    if not (re.match(regex, info["email"])):
+        res = "Sorry, invalid email"
+        return res
+    return 'ok'
 
 
 def checkLogin(_name, _pass):
@@ -71,12 +93,12 @@ def checkIfAlreadyExists(info):
     res = qry.fetch(1)
     logging.debug(res)
     if (len(res) != 0):
-        return True
+        return str.format("User with login %s already exist", info["login"])
     qry = user.query(user.email == info["email"])
     res = qry.fetch(1)
     if (len(res) != 0):
-        return True
-    return False
+        return str.format("User with email %s already exist", info["email"])
+    return "ok"
 
 
 class install(ndb.Model):
@@ -100,7 +122,7 @@ class install(ndb.Model):
         return int(str1)
 
 
-def getInstallWithParam(installist, param):
+def getInstallsWithParam(installist, param):
     newList = []
     for inst in installist:
         switch = {
@@ -118,14 +140,23 @@ def getInstallWithParam(installist, param):
     return newList
 
 
+def getCrashesList(crashes, param):
+    newList = []
+    for cr in crashes:
+        switch = {
+            'date': cr.date,
+            'dailyCrashes': cr.dailyCrashes}
+        newList.append(switch[param])
+    return newList
+
+
 def primitiveUlpoadOnServer(info):
-    if not (checkIfAlreadyOnServer(info)):
-        uploadOnServer(info)
+    if not (checkIfInstallExist(info)):
+        uploadInstall(info)
 
 
-def checkIfAlreadyOnServer(info):
-    qry = install.query(install.appName == info["appName"], install.date == info["date"],
-                        install.curDevInst == int(info["curDevInst"]))
+def checkIfInstallExist(info):
+    qry = install.query(install.appName == info["appName"], install.date == info["date"])
     res = qry.fetch()
     logging.debug(res)
     if len(res) == 0:
@@ -133,11 +164,11 @@ def checkIfAlreadyOnServer(info):
     return True
 
 
-def forceUploadOnServer(info):
-    uploadOnServer(info)
+def forceInstallUpload(info):
+    uploadInstall(info)
 
 
-def uploadOnServer(info):
+def uploadInstall(info):
     new_install = install()
     new_install.date = info["date"]
     logging.debug(info['date'][:4])
@@ -216,8 +247,8 @@ def flushDatastore():
     return True
 
 
-def getData():
-    rootdir = 'application/static/installcom/scn/'
+def getInstallData():
+    rootdir = 'application/static/installcom/forth/'
     list = []
     for subdir, dirs, files in os.walk(rootdir):
         for file in files:
@@ -250,13 +281,238 @@ def target1(filename):
     f.close()
 
 
-custom_style = Style(
-    plot_background='rgba(255, 255, 255, 1)',
-    background='rgba(249, 249, 249, 1)',
-    value_background='rgba(229, 229, 229, 1)',
-    foreground='rgba(0, 0, 0, .87)',
-    foreground_strong='rgba(0, 0, 0, 1)',
-    foreground_subtle='rgba(0, 0, 0, .54)',
-    opacity='.6',
-    opacity_hover='.9',
-    colors=('rgb(11, 124, 184)', '#E8537A', '#E95355', '#E87653', '#E89B53'))
+def getCrashesData():
+    rootdir = 'application/static/crash/'
+    list = []
+    for subdir, dirs, files in os.walk(rootdir):
+        for file in files:
+            if (file != '.DS_Store'):
+                res = os.path.join(subdir, file)
+                list.append(res)
+                print res
+
+    for entry in list:
+        t = threading.Thread(target=target2(entry))
+        t.start()
+
+
+def target2(filename):
+    f = open(filename)
+    stream = io.StringIO(f.read().decode("UTF16"), newline=None)
+    csv_input = csv.reader(stream)
+    flag = False
+    for row in csv_input:
+        print row
+        if (not (flag)):
+            flag = True
+        else:
+            info = {'date': row[0], 'appName': row[1], 'dailyCrashes': int(row[2]), 'dailyANRs': int(row[3])}
+            primitiveCrashUlpoad(info)
+    f.close()
+
+
+def uploadCrash(info):
+    new_crash = crash()
+    new_crash.date = info["date"]
+    new_crash.appName = info["appName"]
+    new_crash.dailyCrashes = info["dailyCrashes"]
+    new_crash.dailyANRs = info["dailyANRs"]
+
+    new_crash.year = int(info['date'][:4])
+    new_crash.month = int(info['date'][5:7])
+    new_crash.day = int(info['date'][-2:])
+
+    new_crash.intDate = new_crash.getIntDate()
+    new_crash.put()
+
+
+class crash(ndb.Model):
+    date = ndb.StringProperty()
+    appName = ndb.StringProperty()
+    dailyCrashes = ndb.IntegerProperty()
+    dailyANRs = ndb.IntegerProperty()
+    day = ndb.IntegerProperty()
+    year = ndb.IntegerProperty()
+    month = ndb.IntegerProperty()
+    intDate = ndb.IntegerProperty()
+
+    def getIntDate(self):
+        str1 = self.date[:4] + self.date[5:7] + self.date[-2:]
+        return int(str1)
+
+
+def getCrashFromServer(appName, dateStartWith, dateEndsWith):
+    date1 = int(dateStartWith[:4] + dateStartWith[5:7] + dateStartWith[-2:])
+    date2 = int(dateEndsWith[:4] + dateEndsWith[5:7] + dateEndsWith[-2:])
+
+    qry = crash.query(crash.appName == appName, crash.intDate >= date1, crash.intDate <= date2)
+    res = qry.fetch()
+    res = sorted(res, cmp=numeric_compare)
+    return res
+
+
+def getCrashFromServerParam(appName, param):
+    today = datetime.datetime.now()
+    day = datetime.timedelta(days=1)
+    datetoString = today - day
+
+    switch = {
+        'oneM': relativedelta(months=1),
+        'threeM': relativedelta(months=3),
+        'sixM': relativedelta(months=6),
+        'twelveM': relativedelta(months=12),
+        'allTime': relativedelta(months=72)
+    }
+
+    start = datetoString - switch[param]
+
+    startDate = str(start)[:10]
+    finishdate = str(datetoString)[:10]
+
+    return getCrashFromServer(appName, startDate, finishdate)
+
+
+def checkIfCrashExist(info):
+    qry = crash.query(install.appName == info["appName"], install.date == info["date"])
+    res = qry.fetch()
+    if len(res) == 0:
+        return False
+    return True
+
+
+def primitiveCrashUlpoad(info):
+    if not (checkIfCrashExist(info)):
+        uploadCrash(info)
+
+
+def forceCrashUpload(info):
+    uploadCrash(info)
+
+
+def getRatesData():
+    rootdir = 'application/static/rate/fst'
+    list = []
+    for subdir, dirs, files in os.walk(rootdir):
+        for file in files:
+            if (file != '.DS_Store'):
+                res = os.path.join(subdir, file)
+                list.append(res)
+                print res
+
+    for entry in list:
+        t = threading.Thread(target=target3(entry))
+        t.start()
+
+
+def target3(filename):
+    f = open(filename)
+    stream = io.StringIO(f.read().decode("UTF16"), newline=None)
+    csv_input = csv.reader(stream)
+    flag = False
+    for row in csv_input:
+        print row
+        if (not (flag)):
+            flag = True
+        else:
+            info = {'date': row[0], 'appName': row[1], 'dailyR': row[2], 'totalR': row[3]}
+            primitiveRateUpload(info)
+    f.close()
+
+
+def uploadRate(info):
+    new_rate = rate()
+    new_rate.date = info["date"]
+    new_rate.appName = info["appName"]
+    if (info["dailyR"] == 'NA'):
+        new_rate.dailyR = 0
+    else:
+        new_rate.dailyR = float(info["dailyR"])
+    if (info["totalR"] == 'NA'):
+        new_rate.totalR = 0
+    else:
+        new_rate.totalR = float(info["totalR"])
+
+    new_rate.year = int(info['date'][:4])
+    new_rate.month = int(info['date'][5:7])
+    new_rate.day = int(info['date'][-2:])
+
+    new_rate.intDate = new_rate.getIntDate()
+
+    new_rate.put()
+
+
+class rate(ndb.Model):
+    date = ndb.StringProperty()
+    appName = ndb.StringProperty()
+
+    dailyR = ndb.FloatProperty()
+    totalR = ndb.FloatProperty()
+
+    day = ndb.IntegerProperty()
+    year = ndb.IntegerProperty()
+    month = ndb.IntegerProperty()
+    intDate = ndb.IntegerProperty()
+
+    def getIntDate(self):
+        str1 = self.date[:4] + self.date[5:7] + self.date[-2:]
+        return int(str1)
+
+
+def getRateFromServer(appName, dateStartWith, dateEndsWith):
+    date1 = int(dateStartWith[:4] + dateStartWith[5:7] + dateStartWith[-2:])
+    date2 = int(dateEndsWith[:4] + dateEndsWith[5:7] + dateEndsWith[-2:])
+
+    qry = rate.query(rate.appName == appName, rate.intDate >= date1, rate.intDate <= date2)
+    res = qry.fetch()
+    res = sorted(res, cmp=numeric_compare)
+    return res
+
+
+def getRateFromServerParam(appName, param):
+    today = datetime.datetime.now()
+    day = datetime.timedelta(days=1)
+    datetoString = today - day
+
+    switch = {
+        'oneM': relativedelta(months=1),
+        'threeM': relativedelta(months=3),
+        'sixM': relativedelta(months=6),
+        'twelveM': relativedelta(months=12),
+        'allTime': relativedelta(months=72)
+    }
+
+    start = datetoString - switch[param]
+
+    startDate = str(start)[:10]
+    finishdate = str(datetoString)[:10]
+
+    return getRateFromServer(appName, startDate, finishdate)
+
+
+def checkIfRateExist(info):
+    qry = rate.query(rate.appName == info["appName"], rate.date == info["date"])
+    res = qry.fetch()
+    if len(res) == 0:
+        return False
+    return True
+
+
+def primitiveRateUpload(info):
+    if not (checkIfRateExist(info)):
+        uploadRate(info)
+
+
+def forceRateUpload(info):
+    uploadRate(info)
+
+
+def getRatesList(rates, param):
+    newList = []
+    for ra in rates:
+        switch = {
+            'date': ra.date,
+            'dailyR': ra.dailyR,
+            'totalR': ra.totalR
+        }
+        newList.append(switch[param])
+    return newList
