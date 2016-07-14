@@ -8,7 +8,7 @@
 }
 
 body {
-    background-image: url("back.png");
+    background-image: url("back4.png");
     font-family: 'Source Sans Pro', sans-serif;
     color: white;
     text-align: center;
@@ -76,6 +76,26 @@ body :-ms-input-placeholder {
     font-weight: 200;
 }
 
+/* unvisited link */
+a:link {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+/* visited link */
+a:visited {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+/* mouse over link */
+a:hover {
+    color: rgba(255, 255, 255, 0.3);
+}
+
+/* selected link */
+a:active {
+    color: rgb(255, 255, 255);
+}
+
 form {
     padding: 20px 0;
     position: relative;
@@ -132,7 +152,7 @@ form input:hover {
 form input:focus {
     background-color: white;
     width: 300px;
-    color: #53e3a6;
+    color: rgb(7,101,100);
 }
 
 form button {
@@ -143,7 +163,7 @@ form button {
     background-color: white;
     border: 0;
     padding: 10px 15px;
-    color: #53e3a6;
+    color: rgb(7,101,100);
     border-radius: 3px;
     width: 250px;
     cursor: pointer;

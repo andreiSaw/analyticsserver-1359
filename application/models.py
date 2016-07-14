@@ -15,8 +15,8 @@ from werkzeug.security import generate_password_hash, check_password_hash
 tkey = ndb.Key('user', 'newUser')
 
 custom_style = Style(
-    plot_background='rgba(255, 255, 255, 1)',
-    background='rgba(249, 249, 249, 1)',
+    plot_background='rgba(255, 255, 255, 0.6)',
+    background='rgba(255, 255, 255, 0.2)',
     value_background='rgba(229, 229, 229, 1)',
     foreground='rgba(0, 0, 0, .87)',
     foreground_strong='rgba(0, 0, 0, 1)',
@@ -248,7 +248,7 @@ def flushDatastore():
 
 
 def getInstallData():
-    rootdir = 'application/static/installcom/forth/'
+    rootdir = 'application/static/installcom/six/'
     list = []
     for subdir, dirs, files in os.walk(rootdir):
         for file in files:

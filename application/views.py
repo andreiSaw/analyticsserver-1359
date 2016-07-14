@@ -45,11 +45,37 @@ def controlpage():
     print curAppName
     print "-------"
 
+    chart = pygal.Line(show_x_labels=False,
+                       width=600, height=400,
+                       show_legend=False,
+                       title=curAppName,
+                       dots_size=defDotSize,
+                       style=custom_style,
+                       human_readable=True,
+                       interpolate='cubic')
+
     if request.method == 'POST':
         installParam = request.form.get('selector')
         dateParam = request.form.get('selector_date')
         if dateParam != 'oneM':
             defDotSize = 2
+            chart = pygal.Line(show_x_labels=False,
+                               width=600, height=400,
+                               show_legend=False,
+                               title=curAppName,
+                               dots_size=defDotSize,
+                               style=custom_style,
+                               human_readable=True)
+        else:
+            chart = pygal.Line(show_x_labels=False,
+                               width=600, height=400,
+                               show_legend=False,
+                               title=curAppName,
+                               dots_size=defDotSize,
+                               style=custom_style,
+                               human_readable=True,
+                               interpolate='cubic')
+
         if (installParam == 'dailyCrashes'):
             res = getCrashFromServerParam(curAppName, dateParam)
             inst = getCrashesList(res, installParam)
@@ -70,15 +96,6 @@ def controlpage():
         inst = getInstallsWithParam(res, installParam)
         dates = getInstallsWithParam(res, 'date')
         print "get"
-
-    chart = pygal.Line(show_x_labels=False,
-                       width=700, height=300,
-                       show_legend=False,
-                       title=curAppName,
-                       dots_size=defDotSize,
-                       style=custom_style,
-                       interpolate='cubic',
-                       human_readable=True)
 
     print installParam
     print "-------"
