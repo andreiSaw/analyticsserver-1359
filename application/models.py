@@ -4,7 +4,6 @@ import io
 import logging
 import os
 import re
-import threading
 
 from dateutil.relativedelta import relativedelta
 from google.appengine.ext import ndb
@@ -93,11 +92,11 @@ def checkIfAlreadyExists(info):
     res = qry.fetch(1)
     logging.debug(res)
     if (len(res) != 0):
-        return str.format("User with login %s already exist", info["login"])
+        return str.format("User with login {0} already exist", info["login"])
     qry = user.query(user.email == info["email"])
     res = qry.fetch(1)
     if (len(res) != 0):
-        return str.format("User with email %s already exist", info["email"])
+        return str.format("User with email {0} already exist", info["email"])
     return "ok"
 
 
@@ -248,7 +247,7 @@ def flushDatastore():
 
 
 def getInstallData():
-    rootdir = 'application/static/installcom/six/'
+    rootdir = 'application/static/installcom/bdd/'
     list = []
     for subdir, dirs, files in os.walk(rootdir):
         for file in files:
@@ -258,8 +257,7 @@ def getInstallData():
                 logging.debug(res)
 
     for entry in list:
-        t = threading.Thread(target=target1(entry))
-        t.start()
+        target1(entry)
 
 
 def target1(filename):
@@ -282,18 +280,16 @@ def target1(filename):
 
 
 def getCrashesData():
-    rootdir = 'application/static/crash/'
+    rootdir = 'application/static/crash/newC'
     list = []
     for subdir, dirs, files in os.walk(rootdir):
         for file in files:
             if (file != '.DS_Store'):
                 res = os.path.join(subdir, file)
                 list.append(res)
-                print res
 
     for entry in list:
-        t = threading.Thread(target=target2(entry))
-        t.start()
+        target2(entry)
 
 
 def target2(filename):
@@ -302,7 +298,7 @@ def target2(filename):
     csv_input = csv.reader(stream)
     flag = False
     for row in csv_input:
-        print row
+
         if (not (flag)):
             flag = True
         else:
@@ -390,18 +386,16 @@ def forceCrashUpload(info):
 
 
 def getRatesData():
-    rootdir = 'application/static/rate/fst'
+    rootdir = 'application/static/rate/newR'
     list = []
     for subdir, dirs, files in os.walk(rootdir):
         for file in files:
             if (file != '.DS_Store'):
                 res = os.path.join(subdir, file)
                 list.append(res)
-                print res
 
     for entry in list:
-        t = threading.Thread(target=target3(entry))
-        t.start()
+        target3(entry)
 
 
 def target3(filename):
@@ -410,7 +404,7 @@ def target3(filename):
     csv_input = csv.reader(stream)
     flag = False
     for row in csv_input:
-        print row
+
         if (not (flag)):
             flag = True
         else:

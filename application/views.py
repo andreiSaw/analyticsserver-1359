@@ -1,3 +1,5 @@
+import threading
+
 import pygal
 
 from application import app
@@ -9,6 +11,24 @@ curAppName = ""
 curUser = ""
 
 
+@app.route('/update')
+def update():
+    t1 = threading.Thread(target=getInstallData)
+
+    t2 = threading.Thread(target=getCrashesData)
+
+    t3 = threading.Thread(target=getRatesData)
+
+    t1.start()
+    t2.start()
+    t3.start()
+
+    t1.join()
+    t2.join()
+    t3.join()
+    return redirect(url_for('home'))
+
+
 @app.route('/')
 def home():
     return redirect(url_for('welcome'))
@@ -18,12 +38,9 @@ def home():
 @app.route('/welcome')
 def welcome():
     # flushDatastore()
-    # getInstallData()
+    getInstallData()
     # getCrashesData()
-    # getRatesData()
-    qry = user.query(user.username == "test")
-    res = qry.fetch()
-    res[0].appName = 'co1'
+    #getRatesData()
     return render_template('welcome.html')  # render a template
 
 
@@ -35,15 +52,13 @@ def controlpage():
     defDotSize = 3
 
     curUser = request.cookies.get('username')
-    print curUser
+
     qry = user.query(user.username == curUser)
     res = qry.fetch()
     if len(res) == 0:
         print 'No such userName'
 
     curAppName = res[0].appName
-    print curAppName
-    print "-------"
 
     chart = pygal.Line(show_x_labels=False,
                        width=600, height=400,
@@ -96,9 +111,6 @@ def controlpage():
         inst = getInstallsWithParam(res, installParam)
         dates = getInstallsWithParam(res, 'date')
         print "get"
-
-    print installParam
-    print "-------"
 
     chart.add('data', inst)
     chart.x_labels = dates
